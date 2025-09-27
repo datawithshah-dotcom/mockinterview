@@ -154,7 +154,7 @@ async function submitExam() {
 
     // Send to GitHub via serverless endpoint
     try {
-        const res = await fetch("https://github.com/datawithshah-dotcom/mockinterview/api/submitExam.js", {
+        const res = await fetch("https://api.github.com/datawithshah-dotcom/mockinterview/api/submitExam.js", {
             method: "POST",
             headers: {"Content-Type":"application/json"},
             body: JSON.stringify(record)
@@ -212,6 +212,7 @@ renderRegister();
 </script>
 </body>
 </html>
+
 
 
 
