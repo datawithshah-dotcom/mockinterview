@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Random Mock Interview - PySpark</title>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+body {margin:0; font-family:'Roboto',sans-serif; background:#1f1c2c; color:#fff;}
+.container {max-width:800px; margin:20px auto; padding:30px; border-radius:16px; background:#2c2a3a; box-shadow:0 10px 30px rgba(0,0,0,0.5);}
+h1,h2,h3{text-align:center;}
+.hidden{display:none;}
+.user-info{text-align:center; margin-bottom:20px; font-size:0.9em; color:#dcdcdc;}
+.user-info span{color:#ff6b6b; font-weight:500;}
+.timer{text-align:right; font-weight:700; color:#ff4d4d; margin-bottom:20px;}
+.question{margin-bottom:25px;}
+.question label{display:block; font-weight:500; margin-bottom:10px; font-size:1.1em; color:#fff;}
+.question textarea{width:100%; min-height:100px; padding:12px; border-radius:10px; border:none; resize:vertical; font-size:1em; background:#3a384c; color:#fff; outline:none;}
+.question textarea:focus{background:#4a4760; box-shadow:0 0 10px rgba(255,255,255,0.2);}
+.btn{padding:12px 24px; margin:10px; font-size:1em; font-weight:600; border:none; border-radius:8px; cursor:pointer; transition:0.3s ease;}
+.btn-primary{background:#ff6b6b;color:#fff;}
+.btn-primary:hover{background:#ff4d4d;}
+.btn-secondary{background:#5bc0de;color:#fff;}
+.btn-secondary:hover{background:#31b0d5;}
+@media(max-width:600px){
+    .container{margin:10px; padding:20px;}
+    .question textarea{min-height:80px;}
+}
+</style>
+</head>
+<body>
+<div class="container" id="app"></div>
+
+<script>
+let examId, userName, userEmail;
+let questions = [];
+let selectedQuestions = [];
+let currentIndex = 0;
+let answers = {};
+let timerInterval;
+
+// Render Register Page
+function renderRegister(){
+    document.getElementById("app").innerHTML = `
+        <h1>Welcome to Mock Interview</h1>
+        <p style="text-align:center;">Enter your details to start</p>
+        <form id="registerForm">
+            <label>Name:</label>
+            <input type="text" id="name" required style="width:100%;padding:10px;border-radius:8px;border:none;margin-bottom:10px;">
+            <label>Email:</label>
+            <input type="email" id="email" required style="width:100%;padding:10px;border-radius:8px;border:none;margin-bottom:20px;">
+            <button type="submit" class="btn btn-primary">Start Exam</button>
+        </form>
+    `;
+    document.getElementById("registerForm").addEventListener('submit', startExam);
+}
+
+// Load questions from JSON
+async function loadQuestionsJSON(){
+    try{
+        const response = await fetch('questions.json');
+        questions = await response.json();
+    }catch(e){
+        alert("Failed to load questions.json");
+    }
+}
+
+// Start Exam
+async function startExam(e){
+    e.preventDefault();
+    userName = document.getElementById('name').value;
+    userEmail = document.getElementById('email').value;
+    examId = 'EXAM-' + Date.now();
+    await loadQuestionsJSON();
+    selectedQuestions = questions.sort(()=>0.5-Math.random()).slice(0,10);
+    currentIndex = 0;
+    answers = {};
+    renderQuestion();
+    startTimer(10*60);
+}
+
+// Render Question Page
+function renderQuestion(){
+    const q = selectedQuestions[currentIndex];
+    document.getElementById("app").innerHTML = `
+        <h1>Random Mock Interview - PySpark</h1>
+        <div class="user-info">
+            Name: <span>${userName}</span>
+            Email: <span>${userEmail}</span><br>
+            Exam ID: <span>${examId}</span>
+        </div>
+        <div class="timer" id="timer">Time left: 10:00</div>
+        <div class="question">
+            <label>Q${currentIndex+1}/${selectedQuestions.length}. ${q.question}</label>
+            <textarea id="answerBox" placeholder="Type your answer here...">${answers[currentIndex]||''}</textarea>
+        </div>
+        <div style="text-align:center;">
+            <button class="btn btn-secondary" id="backBtn" ${currentIndex===0?'style="display:none"':''}>Back</button>
+            ${currentIndex<selectedQuestions.length-1?`<button class="btn btn-secondary" id="nextBtn">Next</button>`:`<button class="btn btn-primary" id="submitBtn">Submit Answers</button>`}
+        </div>
+    `;
+    if(currentIndex>0) document.getElementById('backBtn').addEventListener('click',()=>{answers[currentIndex]=document.getElementById('answerBox').value; currentIndex--; renderQuestion();});
+    if(currentIndex<selectedQuestions.length-1) document.getElementById('nextBtn').addEventListener('click',()=>{answers[currentIndex]=document.getElementById('answerBox').value; currentIndex++; renderQuestion();});
+    else document.getElementById('submitBtn').addEventListener('click', submitExam);
+}
+
+// Timer
+function startTimer(duration){
+    let time=duration;
+    clearInterval(timerInterval);
+    timerInterval = setInterval(()=>{
+        let min=Math.floor(time/60).toString().padStart(2,'0');
+        let sec=(time%60).toString().padStart(2,'0');
+        const timerEl = document.getElementById('timer');
+        if(timerEl) timerEl.textContent = `Time left: ${min}:${sec}`;
+        if(time<=0){clearInterval(timerInterval); submitExam();}
+        time--;
+    },1000);
+}
+
+// Submit Exam with Keyword Matching
+function submitExam(){
+    answers[currentIndex] = document.getElementById('answerBox').value;
+    clearInterval(timerInterval);
+
+    let correct = 0;
+    let strengths = new Set();
+    let weaknesses = new Set();
+
+    selectedQuestions.forEach((q,i)=>{
+        let ans = (answers[i]||'').toLowerCase();
+        let keywords = q.answer.toLowerCase().split(/[\s,.;]+/);
+        let matched = keywords.filter(k => k && ans.includes(k));
+        if(matched.length >= Math.max(1, Math.floor(keywords.length/2))){
+            correct++;
+            strengths.add(q.topic);
+        } else {
+            weaknesses.add(q.topic);
+        }
+    });
+
+    const total = selectedQuestions.length;
+    const percent = Math.round((correct/total)*100);
+    const status = percent>=80?'PASS':'FAIL';
+
+    const record = {examId,userName,userEmail,answers,status,percent};
+    let history = JSON.parse(localStorage.getItem('mockHistory')||'[]');
+    history.push(record);
+    localStorage.setItem('mockHistory',JSON.stringify(history));
+
+    renderResult(correct,total,percent,status,Array.from(strengths),Array.from(weaknesses));
+}
+
+// Render Result
+function renderResult(score, total, percent, status, strengths, weaknesses){
+    document.getElementById("app").innerHTML = `
+    <div style="max-width: 600px; margin: 20px auto; padding: 20px; border-radius: 12px; 
+                box-shadow: 0 4px 15px rgba(0,0,0,0.1); font-family: 'Arial', sans-serif; 
+                background-color: #f9f9f9; color:#000;">
+      <h2 style="text-align: center; color: #333;">Mock Interview Questions- PySpark</h2>
+      <p style="text-align: center; font-size: 1.1em;">Hi <strong>${userName}</strong>,</p>
+      <div style="text-align: center; margin: 20px 0;">
+        <span style="font-size: 2em; font-weight: bold; color: ${status==="PASS" ? "#5cb85c" : "#d9534f"};">
+          ${score} / ${total} (${percent}%)
+        </span>
+        <p style="color: ${status==="PASS" ? "#5cb85c" : "#d9534f"}; font-weight: bold;">
+          ${status}
+        </p>
+      </div>
+      <div style="margin-top: 20px;">
+        <h3 style="color: #5bc0de;">Strengths (Topics you did well)</h3>
+        <ul style="padding-left: 20px; color: #333;">
+          ${strengths.length ? strengths.map(t=>`<li>${t}</li>`).join("") : "<li>-- None Yet --</li>"}
+        </ul>
+      </div>
+      <div style="margin-top: 20px;">
+        <h3 style="color: #f0ad4e;">Weaknesses (Topics to Improve)</h3>
+        <ul style="padding-left: 20px; color: #333;">
+          ${weaknesses.length ? weaknesses.map(t=>`<li>${t}</li>`).join("") : "<li>-- None Yet --</li>"}
+        </ul>
+      </div>
+    </div>
+    `;
+}
+
+// Initial load
+renderRegister();
+</script>
+</body>
+</html>

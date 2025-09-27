@@ -1,0 +1,237 @@
+[
+  {
+    "question": "What is Apache Spark and how is it different from Hadoop MapReduce?",
+    "answer": "Apache Spark is an in-memory distributed computing framework supporting batch, streaming, and interactive analytics. Hadoop MapReduce is disk-based and generally slower.",
+    "topic": "General"
+  },
+  {
+    "question": "How do you create a SparkSession in PySpark?",
+    "answer": "Use: `from pyspark.sql import SparkSession; spark = SparkSession.builder.appName('AppName').getOrCreate()`",
+    "topic": "Setup"
+  },
+  {
+    "question": "What are the different cluster managers supported by Spark?",
+    "answer": "Spark supports Standalone, YARN, Mesos, and Kubernetes cluster managers.",
+    "topic": "Setup"
+  },
+  {
+    "question": "Explain the difference between RDD, DataFrame, and Dataset in PySpark.",
+    "answer": "RDD is a low-level distributed collection of objects. DataFrame is a higher-level abstraction with schema and optimizations. Dataset is a typed extension of DataFrame (mainly in Scala/Java). PySpark commonly uses DataFrames.",
+    "topic": "Core Concepts"
+  },
+  {
+    "question": "What is a SparkContext and why is it important?",
+    "answer": "SparkContext connects to the cluster and coordinates tasks. It's required to create RDDs and initialize Spark functionality.",
+    "topic": "Core Concepts"
+  },
+  {
+    "question": "What are transformations and actions in PySpark?",
+    "answer": "Transformations (map, filter) create new RDDs/DataFrames lazily. Actions (collect, count) trigger computation and return results.",
+    "topic": "Core Concepts"
+  },
+  {
+    "question": "What are the main advantages of using DataFrames over RDDs?",
+    "answer": "DataFrames provide optimized execution with Catalyst optimizer, built-in functions, SQL support, and better memory management compared to RDDs.",
+    "topic": "DataFrame"
+  },
+  {
+    "question": "How can you read data from different sources in PySpark?",
+    "answer": "Use `spark.read` methods: `csv()`, `json()`, `parquet()`, `jdbc()`, etc. Example: `spark.read.csv('file.csv', header=True, inferSchema=True)`",
+    "topic": "DataFrame"
+  },
+  {
+    "question": "How do you perform joins in PySpark DataFrames?",
+    "answer": "Use the `join()` method: `df1.join(df2, df1.key == df2.key, 'inner')`. Join types: inner, left, right, full, cross.",
+    "topic": "DataFrame"
+  },
+  {
+    "question": "How do you filter data in a DataFrame?",
+    "answer": "Use `filter()` or `where()`: `df.filter(df.col > 10)` or `df.where('col > 10')`.",
+    "topic": "DataFrame"
+  },
+  {
+    "question": "Explain the difference between inner, left, right, and full joins in PySpark.",
+    "answer": "Inner join keeps only matching rows. Left join keeps all left rows. Right join keeps all right rows. Full join keeps all rows from both DataFrames.",
+    "topic": "DataFrame"
+  },
+  {
+    "question": "How do you handle missing data in PySpark DataFrames?",
+    "answer": "Use `dropna()` to remove or `fillna()` to replace nulls with specific values.",
+    "topic": "DataFrame"
+  },
+  {
+    "question": "How do you handle duplicate rows in a DataFrame?",
+    "answer": "Use `dropDuplicates()` or `dropDuplicates(['col1','col2'])` to remove duplicates based on all or specific columns.",
+    "topic": "DataFrame"
+  },
+  {
+    "question": "How do you save a DataFrame to a file in PySpark?",
+    "answer": "Use `write` methods: `df.write.csv('path')`, `df.write.parquet('path')`, or `df.write.json('path')`.",
+    "topic": "DataFrame"
+  },
+  {
+    "question": "How do you rename columns in a DataFrame?",
+    "answer": "Use `withColumnRenamed('old', 'new')` to rename columns.",
+    "topic": "DataFrame"
+  },
+  {
+    "question": "How do you convert an RDD to a DataFrame?",
+    "answer": "Use `spark.createDataFrame(rdd, schema)` or `rdd.toDF(['col1','col2'])`.",
+    "topic": "DataFrame"
+  },
+  {
+    "question": "Explain lazy evaluation in PySpark.",
+    "answer": "Transformations are not executed immediately; Spark builds a DAG. Actions trigger execution, enabling optimization and efficiency.",
+    "topic": "Execution"
+  },
+  {
+    "question": "Explain the difference between map() and flatMap() in PySpark.",
+    "answer": "map() transforms each element to one element. flatMap() can return 0 or more elements per input element, flattening the results.",
+    "topic": "RDD"
+  },
+  {
+    "question": "Explain the difference between rdd.collect() and rdd.take(n).",
+    "answer": "collect() retrieves all elements to the driver (careful with large datasets). take(n) retrieves only the first n elements.",
+    "topic": "RDD"
+  },
+  {
+    "question": "Explain the difference between reduceByKey() and groupByKey() in RDDs.",
+    "answer": "reduceByKey combines values at the mapper before shuffle (more efficient). groupByKey shuffles all values to reducer (less efficient).",
+    "topic": "RDD"
+  },
+  {
+    "question": "Explain the difference between mapPartitions() and map() in PySpark.",
+    "answer": "mapPartitions() processes each partition as a whole (faster for heavy operations), map() processes each element individually.",
+    "topic": "RDD"
+  },
+  {
+    "question": "What is the difference between narrow and wide transformations?",
+    "answer": "Narrow transformations (map, filter) do not require shuffling. Wide transformations (groupByKey, join) require shuffling across partitions.",
+    "topic": "Transformations"
+  },
+  {
+    "question": "Explain the Catalyst Optimizer in Spark SQL.",
+    "answer": "Catalyst optimizer analyzes, optimizes, and generates efficient query plans for DataFrames/DataSets in Spark SQL.",
+    "topic": "Spark SQL"
+  },
+  {
+    "question": "What are window functions in PySpark?",
+    "answer": "Window functions perform calculations across rows related to the current row, using `Window` specification, e.g., `rank()`, `row_number()`, `sum()` over a window.",
+    "topic": "Spark SQL"
+  },
+  {
+    "question": "How do you register a DataFrame as a temporary view?",
+    "answer": "Use `df.createOrReplaceTempView('view_name')` to query using Spark SQL.",
+    "topic": "Spark SQL"
+  },
+  {
+    "question": "What is the difference between persist() and cache()?",
+    "answer": "`cache()` stores data in memory only. `persist()` allows storage in memory, disk, or both using `StorageLevel`.",
+    "topic": "Optimization"
+  },
+  {
+    "question": "What are broadcast variables in PySpark?",
+    "answer": "Broadcast variables allow read-only data to be cached on all nodes, reducing data transfer during joins and lookups.",
+    "topic": "Optimization"
+  },
+  {
+    "question": "Explain accumulator variables in PySpark.",
+    "answer": "Accumulators are write-only variables used to aggregate information across executors, e.g., counters or sums.",
+    "topic": "Optimization"
+  },
+  {
+    "question": "Explain the concept of partitioning in PySpark.",
+    "answer": "Partitioning divides data across nodes for parallel processing. Proper partitioning reduces shuffles and improves performance.",
+    "topic": "Optimization"
+  },
+  {
+    "question": "What is a checkpoint in PySpark and when would you use it?",
+    "answer": "Checkpointing saves RDD/DataFrame to reliable storage to recover from failures, especially for long lineage chains.",
+    "topic": "Optimization"
+  },
+  {
+    "question": "What is the difference between coalesce() and repartition()?",
+    "answer": "coalesce() reduces partitions without shuffle (efficient for decreasing partitions). repartition() reshuffles data for increasing/decreasing partitions.",
+    "topic": "Optimization"
+  },
+  {
+    "question": "Explain the difference between persist(StorageLevel.MEMORY_ONLY) and MEMORY_AND_DISK.",
+    "answer": "MEMORY_ONLY stores RDD in memory only, MEMORY_AND_DISK spills partitions to disk if memory is insufficient.",
+    "topic": "Optimization"
+  },
+  {
+    "question": "How do you cache intermediate results in PySpark for faster computations?",
+    "answer": "Use `df.cache()` or `df.persist()` to store intermediate DataFrames/RDDs in memory or disk for reuse.",
+    "topic": "Optimization"
+  },
+  {
+    "question": "How does PySpark handle memory management?",
+    "answer": "PySpark divides memory into execution (for shuffle, joins) and storage (for cached data) areas. It uses JVM garbage collection and Tungsten for optimized memory usage.",
+    "topic": "Performance"
+  },
+  {
+    "question": "Explain how PySpark handles shuffles.",
+    "answer": "Shuffles move data across partitions during wide transformations like join or groupByKey. Shuffles are expensive due to disk/network I/O.",
+    "topic": "Performance"
+  },
+  {
+    "question": "What are some common performance tuning techniques in PySpark?",
+    "answer": "Techniques include caching/persisting, partition tuning, broadcast joins, using DataFrames over RDDs, avoiding shuffles, and using Tungsten/Parquet formats.",
+    "topic": "Performance"
+  },
+  {
+    "question": "What is the role of Tungsten in Spark?",
+    "answer": "Tungsten provides memory management, binary processing, and code generation for improved Spark performance.",
+    "topic": "Performance"
+  },
+  {
+    "question": "How can you optimize a PySpark job?",
+    "answer": "Optimize by using DataFrames over RDDs, caching frequently used data, partition tuning, broadcasting small datasets, and avoiding wide transformations where possible.",
+    "topic": "Performance"
+  },
+  {
+    "question": "Explain the concept of Spark Streaming.",
+    "answer": "Spark Streaming processes real-time data streams by dividing data into micro-batches and applying Spark computations on each batch.",
+    "topic": "Streaming"
+  },
+  {
+    "question": "Explain the difference between structured and unstructured streaming in Spark.",
+    "answer": "Structured streaming uses DataFrames/Datasets with high-level API and guarantees exactly-once semantics. Unstructured (DStream) is low-level and less optimized.",
+    "topic": "Streaming"
+  },
+  {
+    "question": "What is PySpark MLlib and its use?",
+    "answer": "MLlib is Spark’s scalable machine learning library, providing algorithms for classification, regression, clustering, and recommendation.",
+    "topic": "Machine Learning"
+  },
+  {
+    "question": "How do you split a DataFrame into training and test sets?",
+    "answer": "Use `randomSplit([0.8, 0.2], seed=42)` to create training and test datasets.",
+    "topic": "Machine Learning"
+  },
+  {
+    "question": "How do you perform a pivot operation in PySpark DataFrame?",
+    "answer": "Use `groupBy('col1').pivot('col2').agg({'col3':'sum'})` to reshape DataFrame from long to wide format.",
+    "topic": "DataFrame"
+  },
+  {
+    "question": "How do you handle time series data in PySpark?",
+    "answer": "Use timestamp/date functions, window functions, and proper partitioning to process time-based aggregations and calculations.",
+    "topic": "DataFrame"
+  },
+  {
+    "question": "What is the difference between DataFrame.describe() and DataFrame.summary()?",
+    "answer": "describe() provides count, mean, stddev, min, max. summary() provides describe() plus percentiles and extended statistics.",
+    "topic": "DataFrame"
+  },
+  {
+    "question": "How do you read JSON and CSV files into PySpark DataFrame?",
+    "answer": "Use `spark.read.json('file.json')` and `spark.read.csv('file.csv', header=True, inferSchema=True)`.",
+    "topic": "DataFrame"
+  },
+  {
+    "question": "What is the difference between repartitioning and bucketing?",
+    "answer": "Repartitioning redistributes data across partitions (shuffle). Bucketing sorts and distributes data into fixed buckets to optimize joins and queries.",
+    "topic": "Optimization"
+  }
+]
