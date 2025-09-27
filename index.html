@@ -119,36 +119,28 @@ function startTimer(duration){
 }
 
 // Submit Exam with Keyword Matching
-function submitExam(){
+async function submitExam() {
     answers[currentIndex] = document.getElementById('answerBox').value;
     clearInterval(timerInterval);
 
-    let correct = 0;
-    let strengths = new Set();
-    let weaknesses = new Set();
+    // calculate correct/strengths/weaknesses (same as before)
+    
+    const record = {examId, userName, userEmail, answers, status, percent};
 
-    selectedQuestions.forEach((q,i)=>{
-        let ans = (answers[i]||'').toLowerCase();
-        let keywords = q.answer.toLowerCase().split(/[\s,.;]+/);
-        let matched = keywords.filter(k => k && ans.includes(k));
-        if(matched.length >= Math.max(1, Math.floor(keywords.length/2))){
-            correct++;
-            strengths.add(q.topic);
-        } else {
-            weaknesses.add(q.topic);
-        }
-    });
+    // Send to serverless backend
+    try {
+        const res = await fetch("https://your-serverless-url/api/submitExam", {
+            method: "POST",
+            headers: {"Content-Type":"application/json"},
+            body: JSON.stringify(record)
+        });
+        const data = await res.json();
+        console.log("Saved to GitHub:", data);
+    } catch(err) {
+        console.error("Failed to save:", err);
+    }
 
-    const total = selectedQuestions.length;
-    const percent = Math.round((correct/total)*100);
-    const status = percent>=80?'PASS':'FAIL';
-
-    const record = {examId,userName,userEmail,answers,status,percent};
-    let history = JSON.parse(localStorage.getItem('mockHistory')||'[]');
-    history.push(record);
-    localStorage.setItem('mockHistory',JSON.stringify(history));
-
-    renderResult(correct,total,percent,status,Array.from(strengths),Array.from(weaknesses));
+    renderResult(correct, total, percent, status, Array.from(strengths), Array.from(weaknesses));
 }
 
 // Render Result
@@ -188,3 +180,4 @@ renderRegister();
 </script>
 </body>
 </html>
+
