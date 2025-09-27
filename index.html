@@ -80,35 +80,56 @@ async function startExam(e){
 }
 
 // Render Question Page
-function renderQuestion(){
-    const q = selectedQuestions[currentIndex];
-    document.getElementById("app").innerHTML = `
-        <h1>Random Mock Interview - PySpark</h1>
-        <div class="user-info">
-            Name: <span>${userName}</span>
-            Email: <span>${userEmail}</span><br>
-            Exam ID: <span>${examId}</span>
-        </div>
-        <div class="timer" id="timer">Time left: 10:00</div>
-        <div class="question">
-            <label>Q${currentIndex+1}/${selectedQuestions.length}. ${q.question}</label>
-            <textarea id="answerBox" placeholder="Type your answer here...">${answers[currentIndex]||''}</textarea>
-        </div>
-        <div style="text-align:center;">
-            <button class="btn btn-secondary" id="backBtn" ${currentIndex===0?'style="display:none"':''}>Back</button>
-            ${currentIndex<selectedQuestions.length-1?`<button class="btn btn-secondary" id="nextBtn">Next</button>`:`<button class="btn btn-primary" id="submitBtn">Submit Answers</button>`}
-        </div>
-    `;
-    if(currentIndex < selectedQuestions.length - 1){
-    document.getElementById('nextBtn').addEventListener('click', () => {
-        answers[currentIndex] = document.getElementById('answerBox').value;
-        currentIndex++;
-        renderQuestion();
+async function submitExam() {
+    answers[currentIndex] = document.getElementById('answerBox').value;
+    clearInterval(timerInterval);
+
+    let correct = 0;
+    let strengths = new Set();
+    let weaknesses = new Set();
+
+    selectedQuestions.forEach((q,i)=>{
+        let ans = (answers[i]||'').toLowerCase();
+        let keywords = q.answer.toLowerCase().split(/[\s,.;]+/);
+        let matched = keywords.filter(k => k && ans.includes(k));
+        if(matched.length >= Math.max(1, Math.floor(keywords.length/2))){
+            correct++;
+            strengths.add(q.topic);
+        } else {
+            weaknesses.add(q.topic);
+        }
     });
-} else {
-    const submitBtn = document.getElementById('submitBtn');
-    submitBtn.addEventListener('click', submitExam);
+
+    const total = selectedQuestions.length;
+    const percent = Math.round((correct/total)*100);
+    const status = percent>=80?'PASS':'FAIL';
+
+    // Create exam record
+    const record = {examId, userName, userEmail, answers, status, percent};
+
+    // Send to GitHub via serverless endpoint
+    try {
+        const res = await fetch("https://YOUR-SERVERLESS-URL/api/submitExam", {
+            method: "POST",
+            headers: {"Content-Type":"application/json"},
+            body: JSON.stringify(record)
+        });
+        const data = await res.json();
+        console.log("Saved to GitHub:", data);
+    } catch(err) {
+        console.error("Failed to save to GitHub:", err);
+        // Optional fallback: save to localStorage
+        let history = JSON.parse(localStorage.getItem('mockHistory')||'[]');
+        let serial = history.length + 1;
+        record.serial = serial;
+        history.push(record);
+        localStorage.setItem('mockHistory', JSON.stringify(history));
+        console.log("Saved locally instead");
+    }
+
+    renderResult(correct, total, percent, status, Array.from(strengths), Array.from(weaknesses));
 }
+
 
 // Timer
 function startTimer(duration){
