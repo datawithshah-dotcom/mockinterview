@@ -99,9 +99,15 @@ function renderQuestion(){
             ${currentIndex<selectedQuestions.length-1?`<button class="btn btn-secondary" id="nextBtn">Next</button>`:`<button class="btn btn-primary" id="submitBtn">Submit Answers</button>`}
         </div>
     `;
-    if(currentIndex>0) document.getElementById('backBtn').addEventListener('click',()=>{answers[currentIndex]=document.getElementById('answerBox').value; currentIndex--; renderQuestion();});
-    if(currentIndex<selectedQuestions.length-1) document.getElementById('nextBtn').addEventListener('click',()=>{answers[currentIndex]=document.getElementById('answerBox').value; currentIndex++; renderQuestion();});
-    else document.getElementById('submitBtn').addEventListener('click', submitExam);
+    if(currentIndex < selectedQuestions.length - 1){
+    document.getElementById('nextBtn').addEventListener('click', () => {
+        answers[currentIndex] = document.getElementById('answerBox').value;
+        currentIndex++;
+        renderQuestion();
+    });
+} else {
+    const submitBtn = document.getElementById('submitBtn');
+    submitBtn.addEventListener('click', submitExam);
 }
 
 // Timer
@@ -206,6 +212,7 @@ renderRegister();
 </script>
 </body>
 </html>
+
 
 
 
