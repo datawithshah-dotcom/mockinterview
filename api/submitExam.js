@@ -1,8 +1,8 @@
 const { Octokit } = require("@octokit/rest");
 
 const octokit = new Octokit({ auth: process.env.GITHUB_TOKEN });
-const owner = "YOUR_GITHUB_USERNAME";
-const repo = "YOUR_REPO_NAME";
+const owner = "datawithshah-dotcom";
+const repo = "mockinterview";
 const path = "mockHistory.json";
 
 export default async function handler(req, res) {
