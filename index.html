@@ -113,28 +113,73 @@ function startTimer(duration){
     },1000);
 }
 
-async function submitExam(){
+// Submit Exam with Keyword Matching
+function submitExam(){
     answers[currentIndex] = document.getElementById('answerBox').value;
     clearInterval(timerInterval);
 
-    const record = { examId, userName, userEmail, answers, timestamp:new Date().toISOString() };
+    let correct = 0;
+    let strengths = new Set();
+    let weaknesses = new Set();
 
-    try {
-        const res = await fetch("/api/submitExam", {
-            method: "POST",
-            headers: {"Content-Type":"application/json"},
-            body: JSON.stringify(record)
-        });
-        const data = await res.json();
-        console.log("Saved to GitHub:", data);
-    } catch(err){
-        console.error("Error:", err);
-    }
+    selectedQuestions.forEach((q,i)=>{
+        let ans = (answers[i]||'').toLowerCase();
+        let keywords = q.answer.toLowerCase().split(/[\s,.;]+/);
+        let matched = keywords.filter(k => k && ans.includes(k));
+        if(matched.length >= Math.max(1, Math.floor(keywords.length/2))){
+            correct++;
+            strengths.add(q.topic);
+        } else {
+            weaknesses.add(q.topic);
+        }
+    });
 
-    document.getElementById("app").innerHTML = `<h2>Thank you ${userName}! Your exam is submitted.</h2>`;
+    const total = selectedQuestions.length;
+    const percent = Math.round((correct/total)*100);
+    const status = percent>=80?'PASS':'FAIL';
+
+    const record = {examId,userName,userEmail,answers,status,percent};
+    let history = JSON.parse(localStorage.getItem('mockHistory')||'[]');
+    history.push(record);
+    localStorage.setItem('mockHistory',JSON.stringify(history));
+
+    renderResult(correct,total,percent,status,Array.from(strengths),Array.from(weaknesses));
+}
+
+// Render Result
+function renderResult(score, total, percent, status, strengths, weaknesses){
+    document.getElementById("app").innerHTML = `
+    <div style="max-width: 600px; margin: 20px auto; padding: 20px; border-radius: 12px; 
+                box-shadow: 0 4px 15px rgba(0,0,0,0.1); font-family: 'Arial', sans-serif; 
+                background-color: #f9f9f9; color:#000;">
+      <h2 style="text-align: center; color: #333;">Mock Interview Questions- PySpark</h2>
+      <p style="text-align: center; font-size: 1.1em;">Hi <strong>${userName}</strong>,</p>
+      <div style="text-align: center; margin: 20px 0;">
+        <span style="font-size: 2em; font-weight: bold; color: ${status==="PASS" ? "#5cb85c" : "#d9534f"};">
+          ${score} / ${total} (${percent}%)
+        </span>
+        <p style="color: ${status==="PASS" ? "#5cb85c" : "#d9534f"}; font-weight: bold;">
+          ${status}
+        </p>
+      </div>
+      <div style="margin-top: 20px;">
+        <h3 style="color: #5bc0de;">Strengths (Topics you did well)</h3>
+        <ul style="padding-left: 20px; color: #333;">
+          ${strengths.length ? strengths.map(t=>`<li>${t}</li>`).join("") : "<li>-- None Yet --</li>"}
+        </ul>
+      </div>
+      <div style="margin-top: 20px;">
+        <h3 style="color: #f0ad4e;">Weaknesses (Topics to Improve)</h3>
+        <ul style="padding-left: 20px; color: #333;">
+          ${weaknesses.length ? weaknesses.map(t=>`<li>${t}</li>`).join("") : "<li>-- None Yet --</li>"}
+        </ul>
+      </div>
+    </div>
+    `;
 }
 
 renderRegister();
 </script>
 </body>
 </html>
+
