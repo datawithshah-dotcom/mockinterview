@@ -113,8 +113,8 @@ function startTimer(duration){
     },1000);
 }
 
-// Submit Exam with Keyword Matching
-function submitExam(){
+// Submit Exam with Keyword Matching// ✅ Submit Exam
+async function submitExam(){
     answers[currentIndex] = document.getElementById('answerBox').value;
     clearInterval(timerInterval);
 
@@ -138,13 +138,29 @@ function submitExam(){
     const percent = Math.round((correct/total)*100);
     const status = percent>=80?'PASS':'FAIL';
 
-    const record = {examId,userName,userEmail,answers,status,percent};
-    let history = JSON.parse(localStorage.getItem('mockHistory')||'[]');
-    history.push(record);
-    localStorage.setItem('mockHistory',JSON.stringify(history));
+    const record = {examId, userName, userEmail, answers, status, percent};
 
-    renderResult(correct,total,percent,status,Array.from(strengths),Array.from(weaknesses));
+    // 👇 THIS IS WHERE YOU ADD YOUR FETCH CALL
+    try {
+        const res = await fetch("https://mockinterview-peach.vercel.app/api/submitExam", {
+            method: "POST",
+            headers: {"Content-Type":"application/json"},
+            body: JSON.stringify(record)
+        });
+        const data = await res.json();
+        console.log("Saved to server:", data);
+    } catch(err) {
+        console.error("Failed to save to API:", err);
+        // fallback to localStorage if API fails
+        let history = JSON.parse(localStorage.getItem('mockHistory')||'[]');
+        record.serial = history.length+1;
+        history.push(record);
+        localStorage.setItem('mockHistory', JSON.stringify(history));
+    }
+
+    renderResult(correct, total, percent, status, Array.from(strengths), Array.from(weaknesses));
 }
+
 
 // Render Result
 function renderResult(score, total, percent, status, strengths, weaknesses){
@@ -182,4 +198,5 @@ renderRegister();
 </script>
 </body>
 </html>
+
 
