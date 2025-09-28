@@ -1,16 +1,22 @@
 async function submitExam() {
-    answers[currentIndex] = document.getElementById('answerBox').value;
+    // ✅ Save the last answer typed by the user
+    const answerBox = document.getElementById('answerBox');
+    if (answerBox) {
+        answers[currentIndex] = answerBox.value.trim();
+    }
     clearInterval(timerInterval);
 
     let correct = 0;
     let strengths = new Set();
     let weaknesses = new Set();
 
-    selectedQuestions.forEach((q,i)=>{
-        let ans = (answers[i]||'').toLowerCase();
+    // ✅ Keyword-based evaluation
+    selectedQuestions.forEach((q, i) => {
+        let ans = (answers[i] || '').toLowerCase();
         let keywords = q.answer.toLowerCase().split(/[\s,.;]+/);
         let matched = keywords.filter(k => k && ans.includes(k));
-        if(matched.length >= Math.max(1, Math.floor(keywords.length/2))){
+
+        if (matched.length >= Math.max(1, Math.floor(keywords.length / 2))) {
             correct++;
             strengths.add(q.topic);
         } else {
@@ -19,10 +25,10 @@ async function submitExam() {
     });
 
     const total = selectedQuestions.length;
-    const percent = Math.round((correct/total)*100);
+    const percent = Math.round((correct / total) * 100);
     const status = percent >= 80 ? 'PASS' : 'FAIL';
 
-    // ✅ Create exam record
+    // ✅ Prepare exam record
     const record = {
         examId,
         userName,
@@ -30,28 +36,34 @@ async function submitExam() {
         status,
         score: `${correct}/${total}`,
         percent,
-        answers
+        answers,
+        submittedAt: new Date().toISOString()
     };
 
-    // ✅ Save history to localStorage with serial number
+    // ✅ Save to localStorage with serial number
     let history = JSON.parse(localStorage.getItem('mockHistory') || '[]');
-    let serial = history.length + 1;
-    record.serial = serial;
+    record.serial = history.length + 1;
     history.push(record);
     localStorage.setItem('mockHistory', JSON.stringify(history));
 
-    // ✅ Send to serverless backend (optional)
+    // ✅ Send to Vercel API (backend)
     try {
         const res = await fetch("https://mockinterview-i63vnnym2-shahnawazs-projects-f5eff102.vercel.app/api/submitExam", {
             method: "POST",
-            headers: {"Content-Type":"application/json"},
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify(record)
         });
+
+        if (!res.ok) {
+            throw new Error(`Server error: ${res.status}`);
+        }
+
         const data = await res.json();
-        console.log("Saved to backend:", data);
-    } catch(err) {
-        console.error("Failed to save to backend:", err);
+        console.log("✅ Saved to backend:", data);
+    } catch (err) {
+        console.error("❌ Failed to save to backend:", err.message);
     }
 
+    // ✅ Show result page
     renderResult(correct, total, percent, status, Array.from(strengths), Array.from(weaknesses));
 }
