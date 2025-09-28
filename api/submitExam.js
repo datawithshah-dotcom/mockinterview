@@ -1,38 +1,46 @@
-const { Octokit } = require("@octokit/rest");
-
-const octokit = new Octokit({ auth: process.env.GITHUB_TOKEN });
-const owner = "datawithshah-dotcom";
-const repo = "mockinterview";
-const path = "mockHistory.json";
+// /api/submitExam.js
+let submissions = []; // temporary in-memory store (resets on every redeploy)
 
 export default async function handler(req, res) {
-    if (req.method !== "POST") return res.status(405).json({error:"Method not allowed"});
-    
-    const newRecord = req.body;
-
+  if (req.method === "POST") {
     try {
-        // Get current file from GitHub
-        const { data: fileData } = await octokit.repos.getContent({ owner, repo, path });
-        const content = Buffer.from(fileData.content, "base64").toString();
-        const json = JSON.parse(content);
+      // ✅ Parse incoming JSON data
+      const data = req.body;
 
-        // Add serial number
-        newRecord.serial = json.length + 1;
-        json.push(newRecord);
+      if (!data || !data.examId || !data.userName) {
+        return res.status(400).json({ error: "Missing required fields" });
+      }
 
-        // Commit updated file
-        await octokit.repos.createOrUpdateFileContents({
-            owner,
-            repo,
-            path,
-            message: `Add exam record #${newRecord.serial}`,
-            content: Buffer.from(JSON.stringify(json, null, 2)).toString("base64"),
-            sha: fileData.sha
-        });
+      // ✅ Store the submission (temporary)
+      const saved = {
+        id: submissions.length + 1,
+        timestamp: new Date().toISOString(),
+        ...data,
+      };
+      submissions.push(saved);
 
-        res.status(200).json({status:"success", serial:newRecord.serial});
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({status:"error", message:err.message});
+      console.log("📥 Received new submission:", saved);
+
+      return res.status(200).json({
+        message: "✅ Exam submitted successfully!",
+        record: saved,
+        totalSubmissions: submissions.length,
+      });
+    } catch (error) {
+      console.error("❌ API Error:", error);
+      return res.status(500).json({ error: "Internal Server Error" });
     }
+  }
+
+  // ✅ Allow checking all submissions (optional)
+  if (req.method === "GET") {
+    return res.status(200).json({
+      message: "📄 List of all submissions (temporary storage)",
+      submissions,
+    });
+  }
+
+  // ✅ If any other method is used
+  res.setHeader("Allow", ["GET", "POST"]);
+  return res.status(405).json({ error: `Method ${req.method} Not Allowed` });
 }
